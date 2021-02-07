@@ -167,4 +167,3 @@ const sha256 = function (ascii) {
     }
     return result
 }
-
