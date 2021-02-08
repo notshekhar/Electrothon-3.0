@@ -6,9 +6,10 @@ require("dotenv").config()
 
 const db = monk("localhost/electrothon")
 const [users] = [db.get("users")]
+users.createIndex("username")
 
 const { errorHandler } = require("./serverJS/error")
-const { encodeJSON, decodeJSON, MD5 } = require("./serverJS/encryption")
+const { encodeJSON, decodeJSON, sha256 } = require("./serverJS/encryption")
 
 const app = express()
 
@@ -21,9 +22,10 @@ const server = app.listen(process.env.PORT || 3000, () => {
 //api
 app.post("/login", async (req, res, next) => {
     try {
+        console.log("asking for login")
         let { u_username, u_password } = req.body
         let user = await users.findOne({
-            $and: [{ username: u_username }, { password: MD5(u_password) }],
+            $and: [{ username: u_username }, { password: sha256(u_password) }],
         })
         if (!user) throw new Error("No user exist create new account")
         let { password, ...user_data } = user
@@ -52,7 +54,7 @@ app.post("/signup", async (req, res, next) => {
                 let insert = await users.insert({
                     username: u_username,
                     name: u_name,
-                    password: MD5(u_password),
+                    password: sha256(u_password),
                     timestamp: new Date(),
                 })
                 let { password, ...user_data } = insert

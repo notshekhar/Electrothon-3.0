@@ -1,6 +1,6 @@
 const APP = {
     login: async function ({ username, password }) {
-        if (!(username & password)) {
+        if (!((username.length > 0) & (password.length > 0))) {
             APP.renderError("Username or the Password is missing try again")
             return
         }

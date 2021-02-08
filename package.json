@@ -23,6 +23,7 @@
     "express": "^4.17.1",
     "ganache-core": "^2.13.2",
     "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.11.15",
     "monk": "^7.3.3",
     "morgan": "^1.10.0",
     "web3": "^1.3.4"
