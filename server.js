@@ -10,6 +10,7 @@ users.createIndex("username")
 
 const { errorHandler } = require("./serverJS/error")
 const { encodeJSON, decodeJSON, sha256 } = require("./serverJS/encryption")
+const sanitize = require("./serverJS/sanitize")
 
 const app = express()
 
@@ -25,7 +26,10 @@ app.post("/login", async (req, res, next) => {
         console.log("asking for login")
         let { u_username, u_password } = req.body
         let user = await users.findOne({
-            $and: [{ username: u_username }, { password: sha256(u_password) }],
+            $and: [
+                { username: sanitize(u_username) },
+                { password: sha256(u_password) },
+            ],
         })
         if (!user) throw new Error("No user exist create new account")
         let { password, ...user_data } = user
@@ -47,21 +51,20 @@ app.post("/signup", async (req, res, next) => {
             )
         )
             throw new Error("You can leave any Field Empty")
-        else {
-            let user = await users.findOne({ username: u_username })
-            if (user) throw new Error("User Already Exist")
-            else {
-                let insert = await users.insert({
-                    username: u_username,
-                    name: u_name,
-                    password: sha256(u_password),
-                    timestamp: new Date(),
-                })
-                let { password, ...user_data } = insert
-                let { timestamp, name, ...token_data } = insert
-                res.json({ token: encodeJSON(token_data), data: user_data })
-            }
-        }
+
+        let user = await users.findOne({ username: u_username })
+
+        if (user) throw new Error("User Already Exist")
+
+        let insert = await users.insert({
+            username: sanitize(u_username),
+            name: sanitize(u_name),
+            password: sha256(u_password),
+            timestamp: new Date(),
+        })
+        let { password, ...user_data } = insert
+        let { timestamp, name, ...token_data } = insert
+        res.json({ token: encodeJSON(token_data), data: user_data })
     } catch (err) {
         next(err)
     }
@@ -71,10 +74,10 @@ app.get("/auth", async (req, res, next) => {
         let { token } = req.query
         let { username, password } = decodeJSON(token)
         let user = await users.findOne({ $and: [{ username }, { password }] })
+
         if (!user) throw new Error("Auth Failed")
-        else {
-            res.json({ auth: true })
-        }
+
+        res.json({ auth: true })
     } catch (err) {
         next(err)
     }
