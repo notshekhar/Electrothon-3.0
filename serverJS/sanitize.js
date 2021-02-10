@@ -5,5 +5,11 @@ function sanitize(unsafe) {
         .replace(/>/g, "\\x3E")
     return escape_string
 }
-
-module.exports = sanitize
+const escape_string = (unsafe) =>
+    unsafe.replace(/[^]/g, function (e) {
+        return "&#" + e.charCodeAt(0) + ";"
+    })
+module.exports = {
+    escape_string,
+    sanitize,
+}

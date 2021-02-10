@@ -10,7 +10,7 @@ users.createIndex("username")
 
 const { errorHandler } = require("./serverJS/error")
 const { encodeJSON, decodeJSON, sha256 } = require("./serverJS/encryption")
-const sanitize = require("./serverJS/sanitize")
+const { escape_string } = require("./serverJS/sanitize")
 
 const app = express()
 
@@ -27,7 +27,7 @@ app.post("/login", async (req, res, next) => {
         let { u_username, u_password } = req.body
         let user = await users.findOne({
             $and: [
-                { username: sanitize(u_username) },
+                { username: escape_string(u_username) },
                 { password: sha256(u_password) },
             ],
         })
@@ -57,8 +57,8 @@ app.post("/signup", async (req, res, next) => {
         if (user) throw new Error("User Already Exist")
 
         let insert = await users.insert({
-            username: sanitize(u_username),
-            name: sanitize(u_name),
+            username: escape_string(u_username),
+            name: escape_string(u_name),
             password: sha256(u_password),
             timestamp: new Date(),
         })
